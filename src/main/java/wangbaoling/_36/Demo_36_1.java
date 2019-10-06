@@ -1,25 +1,64 @@
 package wangbaoling._36;
 
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Demo_36_1 {
 
-    public static void main(String[] args) {
+    // 任务队列
+    BlockingQueue<Task> bq = new LinkedBlockingQueue<>(2000);
 
-        BlockingQueue bq = new LinkedBlockingDeque(2000);
 
-        List list = new ArrayList<Integer>(10);
-        list = new LinkedList();
+    // 启动 5 个消费者线程
+    // 执行批量任务
+    void start() {
 
-        ExecutorService s = Executors.newFixedThreadPool(1000);
-        s = Executors.newCachedThreadPool();
+        ExecutorService es = Executors.newFixedThreadPool(5);
+
+        for (int i=0; i<5; i++) {
+            es.execute(() -> {
+                try {
+                    while (true) {
+                        // 获取批量任务
+                        List<Task> ts = pollTasks();
+                        // 执行批量任务
+                        execTasks(ts);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+    }
+
+    // 从任务队列中获取批量任务
+    List<Task> pollTasks() throws InterruptedException{
+
+        List<Task> ts = new LinkedList<>();
+
+        // 阻塞式获取一条任务
+        Task t = bq.take();
+
+        while (t != null) {
+            ts.add(t);
+            // 非阻塞式获取一条任务
+            t = bq.poll();
+        }
+
+        return ts;
+    }
+
+    // 批量执行任务
+    void execTasks(List<Task> ts) {
+        // 省略具体代码无数
     }
 
 }
+
+class Task {}
