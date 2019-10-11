@@ -7,6 +7,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Demo_30_2 {
 
+    private static Long l1;
+    private static Long l2;
+
     static class ThreadId {
 
         // 定义 ThreadLocal 变量
@@ -23,18 +26,25 @@ public class Demo_30_2 {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
 
         Thread t1 = new Thread(() -> {
-            System.out.println(ThreadId.get());
-            System.out.println(ThreadId.get());
+            System.out.println("t1 : " + ThreadId.get());
+            System.out.println("t1 : " + ThreadId.get());
+            l1 = ThreadId.get();
         });
         t1.start();
 
         Thread t2 = new Thread(() -> {
-            System.out.println(ThreadId.get());
+            System.out.println("t2 : " + ThreadId.get());
+            l2 = ThreadId.get();
         });
         t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("l1 == l2 : " + (l1 == l2));
 
     }
 
