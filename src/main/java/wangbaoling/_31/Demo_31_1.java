@@ -2,6 +2,7 @@ package wangbaoling._31;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -25,13 +26,23 @@ class RequestHandler {
         // 创建一消息
         Message msg1 = new Message(id,"{...}");
 
-        // 创建 GuardedObject 实例
+        /**
+         * 线程 A 建立一对 (id, go) 在静态 Map 中；
+         */
         GuardedObject<Message> go = GuardedObject.create(id);
 
         // 发送消息
         send(msg1);
 
-        // 等待 MQ 消息
+        /**
+         * 线程 A 试图从守卫对象 go 中获取被保护的资源 obj；
+         * 如果获取不到，线程 A 会进入守卫对象 go 的 condition 队列，
+         * 线程 B 收到返回的 msg 后：
+         *   1）从静态 Map 中取出这对(id, go)；
+         *   2）将 msg 置入它的守卫对象 go.obj；
+         *   3）唤醒 go 中等待的线程 A；
+         * 线程 A 被唤醒，取出被保护的资源 obj，即 msg；
+         */
         Message r = go.get( t -> t != null );
 
         return new Respond<Message>(r);
